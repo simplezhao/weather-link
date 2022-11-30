@@ -1,38 +1,43 @@
 import uvicorn
 from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
+import os
+import random
+from code.third_party.alicloudapi.weather import JMWeather
+from code.third_party.quotes.daodejing import dao
 
+appcode = os.getenv("APPCODE")
+
+jm_client = JMWeather(appcode)
 app = FastAPI()
 
 
 @app.get('/')
-async def hello():
-    return HTMLResponse('''<html xmlns="http://www.w3.org/1999/xhtml">
-<head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-    <title>Serverless Devs - Powered By Serverless Devs</title>
-    <link href="https://example-static.oss-cn-beijing.aliyuncs.com/web-framework/style.css" rel="stylesheet" type="text/css"/>
-</head>
-<body>
-<div class="website">
-    <div class="ri-t">
-        <h1>Devsapp</h1>
-        <h2>这是一个 FastAPI 项目</h2>
-        <span>自豪的通过Serverless Devs进行部署</span>
-        <br/>
-        <p>您也可以快速体验： <br/>
-            • 下载Serverless Devs工具：npm install @serverless-devs/s<br/>
-            • 初始化项目：s init start-fastapi<br/>
+async def weather(city: str = '北京'):
 
-            • 项目部署：s deploy<br/>
-            <br/>
-            Serverless Devs 钉钉交流群：33947367
-        </p>
-    </div>
-</div>
-</body>
-</html>
-''')
+    weather_info = jm_client.get_weather_by_city(city)
+
+    data = f"""
+        <!doctype html>
+        <html lang="zh" data-hairline="true" data-theme="light">
+            <head>
+                <meta charset="utf-8"/>
+                <meta data-rh="true" property="og:title" content="{weather_info['temperature']}℃ | 
+                我在{weather_info['city']} | {random.choice(dao)}"/> 
+                <meta data-rh="true" property="og:url" content=""/>
+                <meta data-rh="true" property="og:description" content="出自道德经"/>
+                <meta data-rh="true" property="og:image" content="{weather_info['weather_pic']}"/>
+                <meta data-rh="true" property="og:type" content="document"/>
+                <meta data-rh="true" property="og:site_name" content="weather-info"/>
+                <link crossorigin="" rel="shortcut icon" type="image/x-icon" href="{weather_info['weather_pic']}"/>
+            </head>
+            <body>
+                
+            </body>
+        </html>
+
+        """
+    return HTMLResponse(data)
 
 
 if __name__ == "__main__":

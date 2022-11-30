@@ -3,8 +3,9 @@ from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
 import os
 import random
-from code.third_party.alicloudapi.weather import JMWeather
-from code.third_party.quotes.daodejing import dao
+from third_party.alicloudapi.weather import JMWeather
+from third_party.quotes.daodejing import dao
+import arrow
 
 appcode = os.getenv("APPCODE")
 
@@ -12,17 +13,17 @@ jm_client = JMWeather(appcode)
 app = FastAPI()
 
 
-@app.get('/')
+@app.get('/weather')
 async def weather(city: str = '北京'):
 
     weather_info = jm_client.get_weather_by_city(city)
-
+    update_time = arrow.now(tz="Asia/Shanghai").format('hh:mm A')
     data = f"""
         <!doctype html>
         <html lang="zh" data-hairline="true" data-theme="light">
             <head>
                 <meta charset="utf-8"/>
-                <meta data-rh="true" property="og:title" content="{weather_info['temperature']}℃ | 
+                <meta data-rh="true" property="og:title" content="{weather_info['temperature']}℃ | {update_time} | 
                 我在{weather_info['city']} | {random.choice(dao)}"/> 
                 <meta data-rh="true" property="og:url" content=""/>
                 <meta data-rh="true" property="og:description" content="出自道德经"/>
